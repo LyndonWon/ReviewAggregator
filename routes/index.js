@@ -5,45 +5,43 @@ var router = express.Router();
 
 /* GET home page. */
 router.get('/', function(req, res, next) {
-  res.render('index', { title: 'Express' });
+  res.render('index');
 });
 
 router.get('/search', function(req, res, next) {
   if (req.query.query) {
     var query = req.query.query;
-    var googleSearchOptions = {
-      uri: 'https://maps.googleapis.com/maps/api/place/textsearch/json',
+    var yelpOptions = {
+      uri: 'https://api.yelp.com/v3/businesses/search',
       qs: {
-        query: query,
-        key: 'AIzaSyBHZ1lNnf4bGtcQSg9BVR3sIKnxCPrFQ28'
+        term: query,
+        latitude: 49.2827,
+        longitude:-123.1207
       },
+      headers: {Authorization: "Bearer v1rCb_qfGjOu5vBytcF7ULCOlxZRUWpA-96hiWHxK1g1LvKRhJk1dZOaRS1xQ92p657KyM9DAitM_vbp1FB1UK91UB3M8MDDnsHQmZKtTfHkiAnPW2PRNwUlP-vNWHYx"},
       json: true
     };
-    rp(googleSearchOptions)
+    rp(yelpOptions)
     .then(function(json) {
       console.log(json);
-      res.render('search', {restaurants: json.results});
+      res.render('search', {restaurants: json.businesses});
     });
   } else {
     res.render('search');
   }
 });
 
-router.get('/restaurant/:place_id', function(req, res, next) {
-  var place_id = req.params.place_id;
-  console.log(place_id);
-  var googleDetailOptions = {
-    uri: 'https://maps.googleapis.com/maps/api/place/details/json',
-    qs: {
-      place_id: place_id,
-      key: 'AIzaSyBHZ1lNnf4bGtcQSg9BVR3sIKnxCPrFQ28'
-    },
+router.get('/restaurant/:id', function(req, res, next) {
+  var id = req.params.id;
+  console.log(id);
+  var yelpDetailView = {
+    uri: 'https://api.yelp.com/v3/businesses/' + id,
+    headers: {Authorization: "Bearer v1rCb_qfGjOu5vBytcF7ULCOlxZRUWpA-96hiWHxK1g1LvKRhJk1dZOaRS1xQ92p657KyM9DAitM_vbp1FB1UK91UB3M8MDDnsHQmZKtTfHkiAnPW2PRNwUlP-vNWHYx"},
     json: true
   };
-  rp(googleDetailOptions)
+  rp(yelpDetailView)
   .then(function(json) {
-    console.log(json);
-    res.render('restaurant', {restaurant: json.result});
+    res.render('restaurant', {restaurant: json});
   });
 });
 
