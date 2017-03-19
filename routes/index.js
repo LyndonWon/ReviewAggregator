@@ -4,11 +4,9 @@ var rp = require('request-promise');
 var router = express.Router();
 
 /* GET home page. */
-router.get('/', function(req, res, next) {
-  res.render('index');
-});
 
-router.get('/search', function(req, res, next) {
+
+router.get('/', function(req, res, next) {
   if (req.query.query) {
     var query = req.query.query;
     var yelpOptions = {
@@ -24,10 +22,10 @@ router.get('/search', function(req, res, next) {
     rp(yelpOptions)
     .then(function(json) {
       console.log(json);
-      res.render('search', {restaurants: json.businesses});
+      res.render('index', {restaurants: json.businesses});
     });
   } else {
-    res.render('search');
+    res.render('index');
   }
 });
 
