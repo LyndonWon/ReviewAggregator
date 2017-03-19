@@ -32,6 +32,8 @@ router.get('/search', function(req, res, next) {
 });
 
 router.get('/restaurant/:id', function(req, res, next) {
+  try {
+
   var id = req.params.id;
   console.log(id);
   var yelpDetailView = {
@@ -41,9 +43,49 @@ router.get('/restaurant/:id', function(req, res, next) {
   };
   rp(yelpDetailView)
   .then(function(json) {
-    res.render('restaurant', {restaurant: json});
+    _zomato_search(json.name, json.coordinates.latitude, json.coordinates.longitude)
+    .then(function(zomato) {
+      res.render('restaurant', {restaurant: json, z_rating: zomato.aggregate_rating, z_count: Number(zomato.votes)});
+    });
   });
+} catch(e) {
+  console.log(e);
+}
 });
+
+var _zomato_search = function(name, lat, lon) {
+   return new Promise(function(resolve, reject) {
+    var options = {
+      uri: 'https://developers.zomato.com/api/v2.1/search',
+      qs: {
+        q: name,
+        lat: lat,
+        lon: lon,
+        count: 1
+      },
+      headers: {"user-key": "b23904bedbac1ceacd4a337e56fcfa56"},
+      json: true
+    };
+    rp(options)
+    .then(function(json) {
+      console.log(json.restaurants[0]);
+      var res_id = json.restaurants[0].restaurant.R.res_id;
+      var detailOptions = {
+        uri: 'https://developers.zomato.com/api/v2.1/restaurant',
+        qs: {
+          res_id: res_id
+        },
+        headers: {"user-key": "b23904bedbac1ceacd4a337e56fcfa56"},
+        json: true
+      };
+      rp(detailOptions)
+      .then(function(detail) {
+        console.log(detail.user_rating.votes);
+        resolve(detail.user_rating);
+      });
+    });
+  });
+}
 
 
 module.exports = router;
